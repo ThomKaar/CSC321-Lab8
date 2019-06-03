@@ -6,12 +6,16 @@ from itertools import cycle
 
 
 def main():
-   cipher = submit()
-   print(cipher)
+   key = Random.get_random_bytes(16) 
+   aes = AES.new(key)
+   iv = bytearray(Random.get_random_bytes(16))
+ 
+   cipher = submit(key, aes, iv)
+   plainText = verify(cipher, key, aes, iv)   
 
-def submit():
+def submit(key, aes, iv):
   plainText = producePlainText()
-  return cbc_plainText_encrypt(plainText)  
+  return cbc_plainText_encrypt(plainText, key, aes, iv)  
  
 # Encodes a plainText to be like urls  
 def urlEncode(plainText):
@@ -30,7 +34,7 @@ def producePlainText():
 
    string = input("What string would you like to submit()? ")
    string = urlEncode(string)
-   return "userid=456;userdate=" + string + "session-id=31337"
+   return "userid=456;userdata=" + string + ";session-id=31337"
             
 def pkcs7(plaintext):
    if len(plaintext) == 16:
@@ -44,16 +48,13 @@ def pkcs7(plaintext):
       plaintext += pad_char
    return plaintext
 
-def cbc_plainText_encrypt(plainText):
+def cbc_plainText_encrypt(plainText, key, aes, iv):
    
-   key = Random.get_random_bytes(16) 
-   aes = AES.new(key)
-   iv = bytearray(Random.get_random_bytes(16))
- 
    i = 0 
-   j = 15
+   j = 16
    
    lastMBlock = False
+   print(plainText)
    data = bytearray(plainText, 'utf8')
    # read the plaintext and pad if necessary to create block of 16 bytes
    mblock0 = data[:j]
@@ -86,7 +87,6 @@ def cbc_plainText_encrypt(plainText):
          
       # write the new cipher to the outfile
       completeCipher += new_cipher
-      print("Added to cipher is: " + completeCipher)
       prev_cipher = new_cipher
  
    return completeCipher   
@@ -94,5 +94,48 @@ def cbc_plainText_encrypt(plainText):
 def xor(x,y):
     return bytearray([a^b for a, b in zip(x, cycle(y))])
 
+def verify(cipher, key, aes, iv):
+   decrypt_cipher(cipher, key, aes, iv)
+
+# Decrypts the ciphertext
+def decrypt_cipher(cipher, key, aes, iv):
+   i = 0
+   j = 16
+   TotalCipherArray = bytearray(cipher)
+   totalBytes = len(TotalCipherArray)
+   finalBlock = False
+   if totalBytes < 16: 
+      finalBlock = True
+   
+   # decrypt a single block
+   de_block = aes.decrypt(bytes(TotalCipherArray[i:j]))
+   # xor with iv/prev_cipher
+   plainText = xor(de_block, iv)
+   
+   plainText = plainText.decode('utf-8')
+   print(plainText)
+   prev_de_block = de_block
+   while not finalBlock:
+      i += 16
+      j += 16
+      block  = TotalCipherArray[i:j]
+      if len(block) == 0:
+         break
+      de_block = aes.decrypt(bytes(block))
+      
+      plainText +=  xor(de_block, prev_de_block).decode('utf-8')
+      print(plainText)
+      prev_de_block = de_block
+      
+   # we have the decrypted message
+   plainText = plainText.decode('utf-8')
+   print(plainText)
+   return plainText
+
+def contains(inputStr, searchStr):
+  if searchStr not in inputStr:
+     return False
+  else:
+     return True
 if __name__ == '__main__':
    main()
