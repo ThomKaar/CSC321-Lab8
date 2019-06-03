@@ -117,9 +117,13 @@ def decrypt_cipher(cipher, key, aes, iv):
    while not finalBlock:
       i += 16
       j += 16
+      if j > len(TotalCipherArray):
+         j = len(TotalCipherArray)
       block  = TotalCipherArray[i:j]
-      if len(block) == 0:
-         break
+      if len(block) < 16:
+         finalBlock = True
+         last = block[-1]
+         print("Last byte is: ", bytes(last).decode('utf-8'))
       de_block = aes.decrypt(bytes(block))
       
       plainText += xor(de_block, prev_block).decode('utf-8')
