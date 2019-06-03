@@ -124,6 +124,7 @@ def decrypt_cipher(cipher, key, aes, iv):
       de_block = aes.decrypt(bytes(block))
       
       plainText += xor(de_block, prev_block).decode('utf-8')
+      prev_block = block
       print(plainText)
       
    # we have the decrypted message
