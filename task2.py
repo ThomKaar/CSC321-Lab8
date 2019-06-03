@@ -20,6 +20,7 @@ def submit(key, aes, iv):
 # Encodes a plainText to be like urls  
 def urlEncode(plainText):
    i = 0
+   i = 0
    for c in plainText:
       if c == ';':
          plainText = plainText[:i] + '%3B'  + plainText[i+1:]
@@ -111,10 +112,8 @@ def decrypt_cipher(cipher, key, aes, iv):
    de_block = aes.decrypt(bytes(block))
    prev_block = block
    # xor with iv/prev_cipher
-   plainText = xor(de_block, iv)
+   plainText = xor(de_block, iv).decode('utf-8')
    
-   plainText = plainText.decode('utf-8')
-   print(plainText)
    while not finalBlock:
       i += 16
       j += 16
@@ -125,11 +124,8 @@ def decrypt_cipher(cipher, key, aes, iv):
       
       plainText += xor(de_block, prev_block).decode('utf-8')
       prev_block = block
-      print(plainText)
       
    # we have the decrypted message
-   plainText = plainText.decode('utf-8')
-   print(plainText)
    return plainText
 
 def contains(inputStr, searchStr):
