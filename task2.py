@@ -105,16 +105,16 @@ def decrypt_cipher(cipher, key, aes, iv):
    totalBytes = len(TotalCipherArray)
    finalBlock = False
    if totalBytes < 16: 
-      finalBlock = True
-   
+      finalBlock = True 
    # decrypt a single block
-   de_block = aes.decrypt(bytes(TotalCipherArray[i:j]))
+   block = TotalCipherArray[i:j]
+   de_block = aes.decrypt(bytes(block))
+   prev_block = block
    # xor with iv/prev_cipher
    plainText = xor(de_block, iv)
    
    plainText = plainText.decode('utf-8')
    print(plainText)
-   prev_de_block = de_block
    while not finalBlock:
       i += 16
       j += 16
@@ -123,9 +123,8 @@ def decrypt_cipher(cipher, key, aes, iv):
          break
       de_block = aes.decrypt(bytes(block))
       
-      plainText +=  xor(de_block, prev_de_block).decode('utf-8')
+      plainText += xor(de_block, prev_block).decode('utf-8')
       print(plainText)
-      prev_de_block = de_block
       
    # we have the decrypted message
    plainText = plainText.decode('utf-8')
